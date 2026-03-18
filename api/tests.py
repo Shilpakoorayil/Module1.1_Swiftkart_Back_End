@@ -17,7 +17,7 @@ class SwiftKartAPITests(TestCase):
 
     def test_user_login(self):
         url = reverse('user-login')
-        data = {'mobile_number': '9876543210', 'otp': '1234'}
+        data = {'mobile_number': '8281456106', 'otp': '1234'}
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('tokens', response.data)

@@ -9,11 +9,11 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'mobile_number', 'role')
 
 class UserLoginSerializer(serializers.Serializer):
-    mobile_number = serializers.CharField(max_length=15)
+    phone_number = serializers.CharField(max_length=15)
     otp = serializers.CharField(max_length=4)
 
     def validate(self, data):
-        mobile_number = data.get('mobile_number')
+        mobile_number = data.get('phone_number')
         otp = data.get('otp')
 
         if len(mobile_number) != 10 or not mobile_number.isdigit():
@@ -33,8 +33,15 @@ class AdminLoginSerializer(serializers.Serializer):
 
     def validate(self, data):
         user = authenticate(username=data.get('username'), password=data.get('password'))
-        if user and user.role == 'ADMIN':
+        
+        # Accept either explicitly set 'ADMIN' role, or Django superusers
+        if user and (user.role == 'ADMIN' or user.is_superuser):
+            # If they are a superuser but lacking the custom role, promote them so Product permissions pass
+            if user.role != 'ADMIN':
+                user.role = 'ADMIN'
+                user.save(update_fields=['role'])
             return user
+            
         raise serializers.ValidationError("Invalid Admin Credentials")
 
 
